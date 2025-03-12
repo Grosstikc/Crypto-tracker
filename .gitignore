@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Streamlit generated folders/files
+.streamlit/
+
 # C extensions
 *.so
 
@@ -135,6 +138,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+crypto-venv/
 
 # Spyder project settings
 .spyderproject

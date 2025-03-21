@@ -1,9 +1,12 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 import streamlit as st
 from src.data_fetcher import fetch_crypto_data, fetch_crypto_news, fetch_historical_data
 from src.data_processor import process_crypto_news, process_data, process_historical_data
 from src.visualizer import plot_crypto_prices, plot_market_cap, plot_historical_prices
 
+load_dotenv()
 # App configuration
 st.set_page_config(page_title='Crypto Market Tracker', layout='wide')
 
@@ -91,7 +94,9 @@ else:
 
 # Cryptocurrency News section 
 st.subheader("📰 Latest Cryptocurrency News")
-NEWS_API_KEY = '***REMOVED***'
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+if not NEWS_API_KEY:
+    raise Exception("Missing NEWS_API_KEY envirement variable.")
 
 # Fetch and process crypto news
 try:

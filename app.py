@@ -2,9 +2,12 @@ import os
 from dotenv import load_dotenv
 import pandas as pd
 import streamlit as st
+import json
+from pathlib import Path
 from src.data_fetcher import fetch_crypto_data, fetch_crypto_news, fetch_historical_data
 from src.data_processor import process_crypto_news, process_data, process_historical_data
 from src.visualizer import plot_crypto_prices, plot_market_cap, plot_historical_prices
+from src.database import SessionLocal, Alert, User
 
 load_dotenv()
 # App configuration
@@ -46,6 +49,53 @@ historical_days = st.sidebar.slider(
 # Explicitly apply filters with button
 apply_filters = st.sidebar.button("🚀 Apply Filters")
 refresh_data = st.sidebar.button("🔄 Refresh Data")
+
+# Alert Configuration Section 
+st.sidebar.subheader("🔔 Set Price Alerts")
+
+telegram_username = st.sidebar.text_input("Your Telegram Username (without @):", key='telegram_username')
+
+alert_crypto = st.sidebar.selectbox(
+    "Crypto for Alert:",
+    ["bitcoin", "ethereum", "solana", "ripple", "cardano"],
+    key="alert_crypto_select"
+)
+
+alert_currency = st.sidebar.selectbox(
+    "Currency:",
+    ["usd", "eur", "gbp"],
+    key="alert_currency_select"
+)
+
+alert_price = st.sidebar.number_input("Target Price:", value=0.0, step=1.0, key="alert_price_input")
+
+price_direction = st.sidebar.selectbox(
+    "Alert When Price Is:",
+    ["Above", "Below"],
+    key="alert_direction_select"
+)
+
+if st.sidebar.button("Set Alert 🚀", key="set_alert_button"):
+    db = SessionLocal()
+    user = db.query(User).filter(User.username.ilike(telegram_username.strip())).first()
+
+    if user:
+        alert = Alert(
+            user_id=user.id,
+            crypto=alert_crypto,
+            currency=alert_currency,
+            price=alert_price,
+            direction=price_direction,
+            triggered=False
+        )
+        db.add(alert)
+        db.commit()
+        db.refresh(alert)
+        st.sidebar.success(f"✅ Alert set for {alert_crypto.capitalize()} at {alert_price} {alert_currency.upper()}!")
+    else:
+        st.sidebar.error("⚠️ Username not found. Please subscribe via Telegram bot first (/start).")
+    
+    db.close()
 
 if refresh_data:
     st.cache_data.clear()

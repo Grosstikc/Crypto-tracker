@@ -19,8 +19,7 @@ def fetch_historical_data(crypto_id='bitcoin', currency='usd', days=30):
     
     return response.json()
 
-@st.cache_data(ttl=300)  # cache data for 5 minutes
-def fetch_crypto_data(crypto_ids=['bitcoin', 'ethereum', 'solana'], currency='usd'):
+def fetch_crypto_data_no_cache(crypto_ids=['bitcoin', 'ethereum', 'solana'], currency='usd'):
     """Fetch real-time cryptocurrency data from GoinGecko API"""
     url = 'https://api.coingecko.com/api/v3/simple/price'
     params = {
@@ -31,11 +30,14 @@ def fetch_crypto_data(crypto_ids=['bitcoin', 'ethereum', 'solana'], currency='us
         'include_24hr_change': 'true'
     }
     response = requests.get(url, params=params)
-
     if response.status_code != 200:
         raise Exception(f"API request failed. Status code: {response.status_code}")
     
     return response.json()
+
+@st.cache_data(ttl=300)  # cache data for 5 minutes
+def fetch_crypto_data(crypto_ids=['bitcoin', 'ethereum', 'solana'], currency='usd'):
+    return fetch_crypto_data_no_cache(crypto_ids, currency)
 
 @st.cache_data(ttl=900) # Cache data for 10 minutes
 def fetch_crypto_news(api_key, query='cryptocurrency OR bitcoin OR ethereum', language='en', page_size=10):

@@ -53,50 +53,83 @@ refresh_data = st.sidebar.button("🔄 Refresh Data")
 # Alert Configuration Section 
 st.sidebar.subheader("🔔 Set Price Alerts")
 
-telegram_username = st.sidebar.text_input("Your Telegram Username (without @):", key='telegram_username')
+# Show telegram onboarding
+st.sidebar.markdown("👤 **To receive price alerts, join the Telegram bot:**")
+st.sidebar.markdown("[📲 Click here to open the Telegram bot](https://t.me/Alert_Cryptocurrency_bot)")
+st.sidebar.image("src/telegram_qr.png", caption="Scan to join from mobile")
+st.sidebar.markdown("*Be sure to press `/start` after opening the bot.*")
 
-alert_crypto = st.sidebar.selectbox(
-    "Crypto for Alert:",
-    ["bitcoin", "ethereum", "solana", "ripple", "cardano"],
-    key="alert_crypto_select"
-)
+telegram_username = st.sidebar.text_input("Your Telegram Username (without @):")
 
-alert_currency = st.sidebar.selectbox(
-    "Currency:",
-    ["usd", "eur", "gbp"],
-    key="alert_currency_select"
-)
+if telegram_username:
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.username.ilike(telegram_username.strip())).first()
 
-alert_price = st.sidebar.number_input("Target Price:", value=0.0, step=1.0, key="alert_price_input")
+        if user:
+            #Set new alert
+            alert_crypto = st.sidebar.selectbox(
+                "Crypto for Alert:",
+                ["bitcoin", "ethereum", "solana", "ripple", "cardano"],
+                key="alert_crypto_select"
+            )
 
-price_direction = st.sidebar.selectbox(
-    "Alert When Price Is:",
-    ["Above", "Below"],
-    key="alert_direction_select"
-)
+            alert_currency = st.sidebar.selectbox(
+                "Currency:",
+                ["usd", "eur", "gbp"],
+                key="alert_currency_select"
+            )
 
-if st.sidebar.button("Set Alert 🚀", key="set_alert_button"):
-    db = SessionLocal()
-    user = db.query(User).filter(User.username.ilike(telegram_username.strip())).first()
+            alert_price = st.sidebar.number_input("Target Price:", value=0.0, step=1.0, key="alert_price_input")
 
-    if user:
-        alert = Alert(
-            user_id=user.id,
-            crypto=alert_crypto,
-            currency=alert_currency,
-            price=alert_price,
-            direction=price_direction,
-            triggered=False
-        )
-        db.add(alert)
-        db.commit()
-        db.refresh(alert)
-        st.sidebar.success(f"✅ Alert set for {alert_crypto.capitalize()} at {alert_price} {alert_currency.upper()}!")
-    else:
-        st.sidebar.error("⚠️ Username not found. Please subscribe via Telegram bot first (/start).")
-    
-    db.close()
+            price_direction = st.sidebar.selectbox(
+                "Alert When Price Is:",
+                ["Above", "Below"],
+                key="alert_direction_select"
+            )
 
+            if st.sidebar.button("Set Alert 🚀", key="set_alert_button"):
+                alert = Alert(
+                    user_id=user.id,
+                    crypto=alert_crypto,
+                    currency=alert_currency,
+                    price=alert_price,
+                    direction=price_direction,
+                    triggered=False
+                )
+                db.add(alert)
+                db.commit()
+                db.refresh(alert)
+                st.sidebar.success(f"✅ Alert set for {alert_crypto.capitalize()} at {alert_price} {alert_currency.upper()}!")
+        
+            # Show existing alerts and allow deletion
+            st.sidebar.markdown("---")
+            st.sidebar.subheader("🗑️ Manage Existing Alerts")
+
+            user_alerts = db.query(Alert).filter(Alert.user_id == user.id).all()
+
+            if user_alerts:
+                alert_options = [
+                    f"{a.crypto.upper()} {a.direction} {a.price} {a.currency.upper()} (ID: {a.id})"
+                    for a in user_alerts
+                ]
+                selected_alert_str = st.sidebar.selectbox("Select an alert to delete:", alert_options, key="delete_alert_select")
+
+                # Extract alert ID from string
+                selected_alert_id = int(selected_alert_str.split("ID:")[1].strip(")"))
+
+                if st.sidebar.button("❌ Delete Selected Alert", key="delete_alert_button"):
+                    alert_to_delete = db.query(Alert).get(selected_alert_id)
+                    if alert_to_delete:
+                        db.delete(alert_to_delete)
+                        db.commit()
+                        st.sidebar.success("✅ Alert deleted")
+                        st.rerun()
+            else:
+                st.sidebar.info("You don't have any alerts set yet.")
+        else:
+            st.sidebar.error("⚠️ Username not found. Please subscribe via Telegram bot first (/start).")
+        
+# Refresh button        
 if refresh_data:
     st.cache_data.clear()
     st.rerun()

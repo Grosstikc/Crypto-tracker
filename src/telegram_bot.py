@@ -9,27 +9,25 @@ TELEGRAM_API_TOKEN = os.getenv("TELEGRAM_API_TOKEN")
 
 async def start(update, context):
     chat_id = str(update.message.chat_id)
-    username = update.message.from_user.chat_id
+    username = update.message.from_user.username
 
     if not username:
         await update.message.reply_text("⚠️ You must set a Telegram username in your settings to use price alerts.")
         print(f"User with chat_id {chat_id} has no username")
         return
     
-    db = SessionLocal()
-    existing_user = db.query(User).filter(User.chat_id == chat_id).first()
+    with SessionLocal() as db:
+        existing_user = db.query(User).filter(User.chat_id == chat_id).first()
 
-    if existing_user is None:
-        user = User(chat_id=chat_id, username=username)
-        db.add(user)
-        db.commit()
-        await update.message.reply_text(f"✅ You are successfully subscribed as @{username}!")
-        print(f"User @{username} ({chat_id}) subscribed and added to DB.")
-    else:
-        await update.message.reply_text("⚠️ You're already subscribed for alerts.")
-        print(f"User @{username} ({chat_id}) already exists.")
-
-    db.close()
+        if existing_user is None:
+            user = User(chat_id=chat_id, username=username)
+            db.add(user)
+            db.commit()
+            await update.message.reply_text(f"✅ You are successfully subscribed as @{username}!")
+            print(f"User @{username} ({chat_id}) subscribed and added to DB.")
+        else:
+            await update.message.reply_text("⚠️ You're already subscribed for alerts.")
+            print(f"User @{username} ({chat_id}) already exists.")
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()

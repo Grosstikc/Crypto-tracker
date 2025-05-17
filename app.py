@@ -54,11 +54,11 @@ refresh_data = st.sidebar.button("🔄 Refresh Data")
 st.sidebar.subheader("🔔 Set Price Alerts")
 
 # Show telegram onboarding
-st.sidebar.markdown("👤 **To receive price alerts, join the Telegram bot:**")
+st.sidebar.markdown("👤 **1) To receive price alerts, join the Telegram bot:**")
 st.sidebar.markdown("[📲 Click here to open the Telegram bot](https://t.me/Alert_Cryptocurrency_bot)")
 st.sidebar.image("src/telegram_qr.png", caption="Scan to join from mobile")
-st.sidebar.markdown("*Be sure to press `/start` after opening the bot.*")
-
+st.sidebar.markdown("*2) Be sure to press `/start` after opening the bot.*")
+st.sidebar.markdown("*3) After that please enter your `Telegram Username` below to set up Alerts*")
 telegram_username = st.sidebar.text_input("Your Telegram Username (without @):")
 
 if telegram_username:

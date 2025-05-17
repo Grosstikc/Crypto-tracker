@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: crypto-tracker-streamlit
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port 10000
+    envVars:
+      - key: NEWS_API_KEY
+        sync: false
+      - key: TELEGRAM_API_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+  - type: worker
+    name: telegram-alert-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m src.telegram_bot
+    envVars:
+      - key: TELEGRAM_API_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+  - type: worker
+    name: alert-price-checker
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m src.price_alert_checker
+    envVars:
+      - key: TELEGRAM_API_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false

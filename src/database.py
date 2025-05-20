@@ -6,7 +6,11 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,  # <- adds ping to check if connection is alive
+    pool_recycle=36000,  # <- closes & resets connections every 30 minutes
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

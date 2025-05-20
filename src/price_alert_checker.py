@@ -21,14 +21,14 @@ async def check_price_alerts():
             if condition_met:
                 # Still clearly uses chat_id (no change!)
                 message = f"🔔 Alert: {alert.crypto.capitalize()} is now {current_price:.2f} {alert.currency.upper()}, {alert.direction} your alert of {alert.price:.2f}!"
-                await send_telegram_message(message, alert.user_chat_id)
+                await send_telegram_message(message, alert.user.chat_id)
                 alert.triggered = True
                 db.commit()
 
 async def run_alert_checker(interval=300):
     while True:
         await check_price_alerts()
-        time.sleep(interval)
+        await asyncio.sleep(interval)
 
 if __name__ == "__main__":
     asyncio.run(run_alert_checker())

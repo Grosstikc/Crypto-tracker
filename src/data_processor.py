@@ -54,13 +54,20 @@ def process_crypto_news(raw_news_data):
 
     news_df = pd.DataFrame([{
         'title': article.get('title'),
-        'description': article.get('description', 'No description available'),
+        'description': article.get(
+            'description',
+            'No description available'
+        ),
         'url': article.get('url'),
         'published_at': article.get('publishedAt'),
-        'source': article.get('source', {}).get('name', 'Unknown')
+        'source': article.get(
+            'source',
+            {}
+        ).get('name', 'Unknown')
     } for article in articles])
 
-    news_df['published_at'] = pd.to_datetime(news_df['published_at'])
-    news_df.drop(columns=['publishedAt'], inplace=True, errors='ignore')
+    news_df['published_at'] = pd.to_datetime(
+        news_df['published_at']
+    )
 
     return news_df
